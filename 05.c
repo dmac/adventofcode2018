@@ -10,32 +10,6 @@ exit $?
 
 #include "base.h"
 
-string step(string s) {
-    for (int i = 0; i < s.len - 1; i++) {
-        int c0 = s.s[i];
-        int c1 = s.s[i + 1];
-        if (c0 != c1 && toupper(c0) == toupper(c1)) {
-            string t = (string){.len = s.len - 2};
-            t.s = malloc(t.len + 1);
-            memcpy(t.s, s.s, i);
-            memcpy(t.s + i, s.s + i + 2, t.len - i);
-            t.s[t.len] = '\0';
-            return t;
-        }
-    }
-    return s;
-}
-
-string step_all(string line) {
-    for (;;) {
-        string next = step(line);
-        if (line.len == next.len) {
-            return line;
-        }
-        line = next;
-    }
-}
-
 string remove_all(string s, int c) {
     string t = (string){.len = s.len};
     t.s = malloc(t.len + 1);
@@ -51,6 +25,39 @@ string remove_all(string s, int c) {
     return t;
 }
 
+int expand(string s, int i) {
+    int deleted = 0;
+    int j = i + 1;
+    for (; i >= 0 && j < s.len;) {
+        if (s.s[i] != s.s[j] && toupper(s.s[i]) == toupper(s.s[j])) {
+            deleted += 2;
+            s.s[i] = ' ';
+            s.s[j] = ' ';
+        } else {
+            break;
+        }
+        for (i = i - 1; s.s[i] == ' '; i--)
+            ;
+        for (j = j + 1; s.s[j] == ' '; j++)
+            ;
+    }
+    return deleted;
+}
+
+int simulate(string s) {
+    int newlen = s.len;
+    for (int i = 0; i < s.len - 1; i++) {
+        int c0 = s.s[i];
+        int c1 = s.s[i + 1];
+        if (c0 != c1 && toupper(c0) == toupper(c1)) {
+            int deleted = expand(s, i);
+            i += deleted / 2;
+            newlen -= deleted;
+        }
+    }
+    return newlen;
+}
+
 int main(void) {
     char **lines = NULL;
     int64_t num_lines = 0;
@@ -59,19 +66,15 @@ int main(void) {
         fatal("%s\n", err);
     }
 
-    string line = (string){
-        .len = strlen(lines[0]),
-        .s = lines[0],
-    };
+    string line = cstr_copy(lines[0]);
+    printf("Part 1: %d\n", simulate(line));
 
-    string final = step_all(line);
-    printf("Part 1: %zu\n", final.len);
-
+    line = cstr_copy(lines[0]);
     int64_t min = INT64_MAX;
     for (int c = 'a'; c <= 'z'; c++) {
-        string s = step_all(remove_all(line, c));
-        if (s.len < min) {
-            min = s.len;
+        int len = simulate(remove_all(line, c));
+        if (len < min) {
+            min = len;
         }
     }
     printf("Part 2: %ld\n", min);

@@ -93,4 +93,11 @@ void sort_strings(char **strings, long num_strings) {
     qsort(strings, num_strings, sizeof(*strings), compare_strings);
 }
 
+string cstr_copy(char *s) {
+    string t = (string){.len = strlen(s)};
+    t.s = malloc(t.len + 1);
+    strcpy(t.s, s);
+    return t;
+}
+
 #endif
