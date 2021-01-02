@@ -1,6 +1,8 @@
 #ifndef AOC2018
 #define AOC2018
 
+#include <assert.h>
+#include <ctype.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -13,6 +15,11 @@
 #include "stb_ds.h"
 
 typedef char *error;
+
+typedef struct {
+    size_t len;
+    char *s;
+} string;
 
 error file_read_lines(char *filename, char ***lines, int64_t *num_lines) {
     if (lines == NULL) {
