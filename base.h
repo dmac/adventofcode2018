@@ -4,12 +4,14 @@
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
@@ -98,6 +100,10 @@ string cstr_copy(char *s) {
     t.s = malloc(t.len + 1);
     strcpy(t.s, s);
     return t;
+}
+
+void clear_screen(void) {
+    printf("\x1B[1;1H\x1B[2J");
 }
 
 #endif
