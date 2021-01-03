@@ -95,6 +95,16 @@ void sort_strings(char **strings, long num_strings) {
     qsort(strings, num_strings, sizeof(*strings), compare_strings);
 }
 
+int compare_chars(const void *v0, const void *v1) {
+    char c0 = *(const char *)v0;
+    char c1 = *(const char *)v1;
+    return (c0 - c1) - (c1 - c0);
+}
+
+void sort_chars(char *chars, long num_chars) {
+    qsort(chars, num_chars, sizeof(*chars), compare_chars);
+}
+
 string cstr_copy(char *s) {
     string t = (string){.len = strlen(s)};
     t.s = malloc(t.len + 1);
@@ -105,5 +115,32 @@ string cstr_copy(char *s) {
 void clear_screen(void) {
     printf("\x1B[1;1H\x1B[2J");
 }
+
+#define fori(idx, len)    \
+    for (int64_t idx = 0; \
+         idx < (len);     \
+         idx++)
+
+#define forv(el, arr)                                        \
+    for (__typeof__(*(arr)) *el##p = &(arr)[0], el = *el##p; \
+         el##p != (arr) + ARRLEN(arr);                       \
+         el##p++, el = (el##p != (arr) + ARRLEN(arr)) ? *el##p : el)
+
+#define forvl(el, arr, len)                                      \
+    if ((len) > 0)                                               \
+        for (__typeof__(*(arr)) *el##p = &(arr)[0], el = *el##p; \
+             el##p != (arr) + (len);                             \
+             el##p++, el = (el##p != (arr) + (len)) ? *el##p : *arr)
+
+#define forp(p, arr)                        \
+    for (__typeof__(*(arr)) *p = &(arr)[0]; \
+         p != (arr) + ARRLEN(arr);          \
+         p++)
+
+#define forpl(p, arr, len)                      \
+    if ((len) > 0)                              \
+        for (__typeof__(*(arr)) *p = &(arr)[0]; \
+             p != (arr) + (len);                \
+             p++)
 
 #endif
