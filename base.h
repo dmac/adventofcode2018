@@ -143,4 +143,16 @@ void clear_screen(void) {
              p != (arr) + (len);                \
              p++)
 
+typedef struct {
+    int64_t x;
+    int64_t y;
+} vec2i;
+
+vec2i vec2i_add(vec2i a, vec2i b) {
+    vec2i c = {0};
+    c.x = a.x + b.x;
+    c.y = a.y + b.y;
+    return c;
+}
+
 #endif
