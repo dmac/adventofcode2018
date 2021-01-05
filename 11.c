@@ -58,7 +58,9 @@ Window do_part2(int serial) {
     for (int window = 1; window <= 300; window++) {
         for (int y = 301 - window; y >= 1; y--) {
             for (int x = 301 - window; x >= 1; x--) {
-                Window k = (Window){
+                Window k;
+                memzero(&k, sizeof(k));
+                k = (Window){
                     .corner = (vec2i){.x = x + 1, .y = y + 1},
                     .size = window - 1,
                 };

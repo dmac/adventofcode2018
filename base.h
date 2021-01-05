@@ -116,6 +116,13 @@ void clear_screen(void) {
     printf("\x1B[1;1H\x1B[2J");
 }
 
+void memzero(void *p, size_t size) {
+    volatile unsigned char *pp = p;
+    for (; size--;) {
+        *pp++ = 0;
+    }
+}
+
 #define fori(idx, len)    \
     for (int64_t idx = 0; \
          idx < (len);     \
