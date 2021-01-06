@@ -42,6 +42,7 @@ error file_read_lines(char *filename, char ***lines, int64_t *num_lines) {
     char *b0 = malloc(size + 1);
     int64_t nread = fread(b0, 1, size, f);
     if (nread != size) {
+        fclose(f);
         return "short read";
     }
     b0[size] = '\0';
@@ -72,6 +73,7 @@ error file_read_lines(char *filename, char ***lines, int64_t *num_lines) {
     if (num_lines) {
         *num_lines = nlines;
     }
+    fclose(f);
     return NULL;
 }
 
