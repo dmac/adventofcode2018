@@ -53,12 +53,11 @@ bool in_bounds(Grid *grid, Coord *coord) {
 }
 
 void fill_for_point(Grid *grid, Coord *coord) {
-    CoordSet *seen = NULL;
+    bool *seen = calloc(grid->w * grid->h, sizeof(*seen));
     Coord *queue = NULL;
     Coord init;
-    memzero(&init, sizeof(init));
-    init = (Coord){.id = 0, .x = coord->x, .y = coord->y};
-    hmput(seen, init, true);
+    init = (Coord){.x = coord->x, .y = coord->y};
+    seen[init.y * grid->w + init.x] = true;
     arrput(queue, init);
     int head = 0;
     for (; arrlen(queue) - head > 0;) {
@@ -76,14 +75,14 @@ void fill_for_point(Grid *grid, Coord *coord) {
         };
         for (int i = 0; i < ARRLEN(diffs); i++) {
             Coord neighbor;
-            memzero(&neighbor, sizeof(neighbor));
             neighbor = (Coord){
+                .id = next.id + 1,
                 .x = next.x + diffs[i].x,
                 .y = next.y + diffs[i].y,
             };
-            if (in_bounds(grid, &neighbor) && hmgeti(seen, neighbor) == -1) {
-                hmput(seen, neighbor, true);
-                neighbor.id = next.id + 1;
+            int seenidx = neighbor.y * grid->w + neighbor.x;
+            if (in_bounds(grid, &neighbor) && !seen[seenidx]) {
+                seen[seenidx] = true;
                 arrput(queue, neighbor);
             }
         }
