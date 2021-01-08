@@ -133,53 +133,52 @@ bool is_open(Tile *t) {
     return !t->wall && !t->unit;
 }
 
-Tile **tiles_in_range(World *w, Tile *t) {
-    Tile **ts = NULL;
+int tiles_in_range(World *w, Tile *t, Tile **tiles) {
+    int n = 0;
     if (t->row > 0) {
         Tile *tt = &w->tiles[(t->row - 1) * w->w + t->col];
-        arrput(ts, tt);
+        tiles[n++] = tt;
     }
     if (t->col > 0) {
         Tile *tt = &w->tiles[t->row * w->w + (t->col - 1)];
-        arrput(ts, tt);
+        tiles[n++] = tt;
     }
     if (t->col < w->w - 1) {
         Tile *tt = &w->tiles[t->row * w->w + (t->col + 1)];
-        arrput(ts, tt);
+        tiles[n++] = tt;
     }
     if (t->row < w->h - 1) {
         Tile *tt = &w->tiles[(t->row + 1) * w->w + t->col];
-        arrput(ts, tt);
+        tiles[n++] = tt;
     }
-    return ts;
+    return n;
 }
 
 long compute_distance(World *w, Tile *t0, Tile *t1) {
     TileDistance *queue = NULL;
     long head = 0;
-    struct {
-        Tile *key;
-        bool value;
-    } *seen = NULL;
+    bool *seen = calloc(w->w * w->h, sizeof(*seen));
     TileDistance first = (TileDistance){
         .tile = t0,
         .dist = 0,
     };
     long distance = -1;
     arrput(queue, first);
-    hmput(seen, t0, true);
+    seen[t0->row * w->w + t0->col] = true;
     for (; arrlen(queue) - head > 0;) {
         TileDistance td = queue[head++];
         if (td.tile == t1) {
             distance = td.dist;
             goto end;
         }
-        Tile **in_range = tiles_in_range(w, td.tile);
-        forvl(nt, in_range, arrlen(in_range)) {
-            if (hmget(seen, nt)) {
+        Tile *in_range[4] = {0};
+        int in_range_len = tiles_in_range(w, td.tile, in_range);
+        for (int i = 0; i < in_range_len; i++) {
+            Tile *nt = in_range[i];
+            if (seen[nt->row * w->w + nt->col]) {
                 continue;
             }
-            hmput(seen, nt, true);
+            seen[nt->row * w->w + nt->col] = true;
             if (is_open(nt)) {
                 TileDistance ntd = (TileDistance){
                     .tile = nt,
@@ -188,11 +187,10 @@ long compute_distance(World *w, Tile *t0, Tile *t1) {
                 arrput(queue, ntd);
             }
         }
-        arrfree(in_range);
     }
 end:
     arrfree(queue);
-    hmfree(seen);
+    free(seen);
     return distance;
 }
 
@@ -221,15 +219,15 @@ bool tick_tile(World *w, Tile *t) {
         goto end;
     }
     forvl(target, targets, arrlen(targets)) {
-        Tile **in_range = tiles_in_range(w, target);
-        forvl(ir, in_range, arrlen(in_range)) {
+        Tile *in_range[4] = {0};
+        int in_range_len = tiles_in_range(w, target, in_range);
+        forvl(ir, in_range, in_range_len) {
             if (ir->row == t->row && ir->col == t->col) {
                 arrput(to_attack, target);
             } else if (is_open(ir)) {
                 arrput(to_move, ir);
             }
         }
-        arrfree(in_range);
     }
     if (arrlen(to_move) == 0 && arrlen(to_attack) == 0) {
         goto end;
@@ -253,8 +251,9 @@ bool tick_tile(World *w, Tile *t) {
         TileDistance chosen = distances[0];
         assert(chosen.dist > 0);
         TileDistance *paths = NULL;
-        Tile **adjacent = tiles_in_range(w, t);
-        forvl(pt, adjacent, arrlen(adjacent)) {
+        Tile *adjacent[4] = {0};
+        int adjacent_len = tiles_in_range(w, t, adjacent);
+        forvl(pt, adjacent, adjacent_len) {
             if (is_open(pt)) {
                 TileDistance ptd = (TileDistance){
                     .tile = pt,
@@ -276,19 +275,18 @@ bool tick_tile(World *w, Tile *t) {
         t = path;
         arrfree(distances);
         arrfree(paths);
-        arrfree(adjacent);
     }
     // Attack
     Tile *attack = NULL;
-    Tile **in_range = tiles_in_range(w, t);
-    forvl(pt, in_range, arrlen(in_range)) {
+    Tile *in_range[4] = {0};
+    int in_range_len = tiles_in_range(w, t, in_range);
+    forvl(pt, in_range, in_range_len) {
         if (pt->unit != NULL && pt->unit->type != t->unit->type) {
             if (attack == NULL || pt->unit->health < attack->unit->health) {
                 attack = pt;
             }
         }
     }
-    arrfree(in_range);
     if (attack == NULL) {
         goto end;
     }
