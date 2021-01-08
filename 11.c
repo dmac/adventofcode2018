@@ -48,11 +48,7 @@ vec2i do_part1(int serial, int window) {
 }
 
 Window do_part2(int serial) {
-    struct {
-        Window key; // key.power = 0;
-        Window value;
-    } *windows = NULL;
-
+    Window *windows = calloc(301 * 301 * 301, sizeof(*windows));
     Window max_window = {0};
 
     for (int window = 1; window <= 300; window++) {
@@ -64,7 +60,8 @@ Window do_part2(int serial) {
                     .corner = (vec2i){.x = x + 1, .y = y + 1},
                     .size = window - 1,
                 };
-                Window base = hmget(windows, k);
+                long widx = k.size * 300 * 300 + k.corner.y * 300 + k.corner.x;
+                Window base = windows[widx];
                 int power = base.power;
                 for (int x0 = x; x0 < x + window; x0++) {
                     power += power_level(serial, x0, y);
@@ -79,7 +76,8 @@ Window do_part2(int serial) {
                 };
                 Window v = k;
                 v.power = power;
-                hmput(windows, k, v);
+                widx = k.size * 300 * 300 + k.corner.y * 300 + k.corner.x;
+                windows[widx] = v;
                 if (v.power > max_window.power) {
                     max_window = v;
                 }
